@@ -27,6 +27,7 @@ function getOpts (args) {
     --version            show version
     --limit <number>     max parallel, default 1 + CPUs / 2
     --exclude <pattern>  ignore these patterns
+    --files <filename>   read one file per line from <filename>
     --write <filename>   specify a file to write tags to`)
           return 0
         case 'version':
@@ -40,6 +41,10 @@ function getOpts (args) {
           i += 1
           if (!opts.exclude) opts.exclude = []
           opts.exclude.push(args[i])
+          break
+        case 'files':
+          i += 1
+          opts.files = args[i]
           break
         case 'write':
           i += 1
@@ -60,7 +65,13 @@ var defaultGlobOpts = {
   absolute: true
 }
 
-function globFiles (o, cb) {
+function getFiles (o, cb) {
+  if (o.files) {
+    return fs.readFile(o.files, function (err, data) {
+      if (err) return cb(err)
+      cb(null, data.toString().split(/\r\n|\n|\r/g))
+    })
+  }
   var inc = o.include || []
   var exc = o.exclude || []
   var pattern = inc.join('|')
@@ -72,17 +83,23 @@ function globFiles (o, cb) {
 
 var kinds = {
   const: 'C',
-  constructor: 'c',
+  constructor: 'c'
 }
 
 function tagFile (file, collect, cb) {
+  // TODO bug
+  if (!file) return cb()
   fs.readFile(file, function (err, data) {
     if (err) return cb(err)
-    var script = data.toString()
-    if (script[0] === '#') script = script.slice(script.indexOf('\n'))
+    var method = 'parseModule'
+    var code = data.toString()
+    if (code[0] === '#') {
+      code = code.slice(code.indexOf('\n'))
+      method = 'parseScript'
+    }
 
     try {
-      esprima.parseScript(script, {
+      esprima[method](code, {
         comment: true,
         jsx: true,
         loc: true,
@@ -122,7 +139,7 @@ function formatTabLine (filename, ident, kind) {
     ident.name,
     filename,
     ':normal ' + ident.loc.start.line + 'G' +
-                 (ident.loc.start.column + 1) + '|;"',
+                 (ident.loc.start.column + 1) + '|;"'
   ]
   if (kind) line.push(kind)
   return line.join('\t')
@@ -160,6 +177,6 @@ module.exports = {
   getOpts: getOpts,
   tagFile: tagFile,
   tagFiles: tagFiles,
-  globFiles: globFiles,
+  getFiles: getFiles,
   writeFile: writeFile
 }

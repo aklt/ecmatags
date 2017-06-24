@@ -22,9 +22,9 @@ test(function (t) {
       filename: 'tags'
     })
   })
-  t.test('globFiles includes and excludes files', function (q) {
+  t.test('getFiles includes and excludes files', function (q) {
     q.plan(2)
-    ecmatags.globFiles({
+    ecmatags.getFiles({
       include: ['*.js', '*.json', '*.md'],
       exclude: ['package-lock.json', 'test-*'],
       filename: 'tags'
@@ -32,7 +32,7 @@ test(function (t) {
       if (err) throw err
       q.same(res.length, 4)
     })
-    ecmatags.globFiles({
+    ecmatags.getFiles({
       include: ['*.js', '*.json', '*.md'],
       exclude: ['index.js', 'package-lock.json', 'test-*'],
       filename: 'tags'

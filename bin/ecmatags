@@ -5,7 +5,7 @@ var opts = et.getOpts(process.argv.slice(2))
 
 if (!opts) process.exit(0)
 
-et.globFiles(opts, function (err, files) {
+et.getFiles(opts, function (err, files) {
   if (err) return cb(err)
   et.tagFiles(files, opts, function (err, tags) {
     if (err) return (err)
