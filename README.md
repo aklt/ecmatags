@@ -1,12 +1,19 @@
 # ECMA tags
 
- Create a tags file using [Esprima](http://esprima.org/)
+[![Build Status](https://travis-ci.org/aklt/ecmatags.svg?branch=master)](https://travis-ci.org/aklt/ecmatags)
 
-## Options
+ Create a tags file using [Esprima](http://esprima.org/).  JSX should also be
+ supported.
 
+## Description
+
+There are a few options:
+
+    # ecmatags --help
     Usage: ecmatags [options] [files]
       Options are:
         --help               show help
         --version            show version
         --limit <number>     max parallel, default 1 + CPUs / 2
-        --exclude <pattern>  ignore these patterns
+        --exclude <pattern>  ignore this pattern. Include several --exclude
+                             options to ignore more patterns
