@@ -21,17 +21,17 @@ test(function (t) {
   t.test('globFiles includes and excludes files', function (q) {
     q.plan(2)
     ecmatags.globFiles({
-      include: ['*.js', '*.json', '*.md']
+      include: ['*.js', '*.json', '*.md'],
+      exclude: ['package-lock.json']
     }, function (err, res) {
       if (err) throw err
       q.same(res.length, 4)
     })
     ecmatags.globFiles({
       include: ['*.js', '*.json', '*.md'],
-      exclude: ['index.js']
+      exclude: ['index.js', 'package-lock.json']
     }, function (err, res) {
       if (err) throw err
-      console.warn('RR', res)
       q.same(res.length, 3)
     })
   })
