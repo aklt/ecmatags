@@ -1,3 +1,4 @@
+var path = require('path')
 var test = require('tape')
 var ecmatags = require('./')
 
@@ -25,7 +26,7 @@ test(function (t) {
     q.plan(2)
     ecmatags.globFiles({
       include: ['*.js', '*.json', '*.md'],
-      exclude: ['package-lock.json'],
+      exclude: ['package-lock.json', 'test-*'],
       filename: 'tags'
     }, function (err, res) {
       if (err) throw err
@@ -33,7 +34,7 @@ test(function (t) {
     })
     ecmatags.globFiles({
       include: ['*.js', '*.json', '*.md'],
-      exclude: ['index.js', 'package-lock.json'],
+      exclude: ['index.js', 'package-lock.json', 'test-*'],
       filename: 'tags'
     }, function (err, res) {
       if (err) throw err
@@ -41,10 +42,17 @@ test(function (t) {
     })
   })
   t.test('tagFiles finds declarations', function (q) {
-    q.plan(2)
+    q.plan(3)
     ecmatags.tagFiles([__filename], {limit: 3}, function (err, data) {
+      if (err) throw err
       q.same(err, null)
-      q.same(data.length, 2)
+      q.same(data.length, 3)
     })
+    ecmatags.tagFiles([path.join(__dirname, 'test-example.js')], {limit: 3},
+      function (err, data) {
+        if (err) throw err
+        // console.warn(require('util').inspect(data, 100))
+        q.same(data.length, 14)
+      })
   })
 })

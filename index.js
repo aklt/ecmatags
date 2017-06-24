@@ -7,8 +7,10 @@ var glob = require('glob')
 var parallelLimit = require('run-parallel-limit')
 
 function getOpts (args) {
+  var limit = 1 + os.cpus().length / 2
+  if (limit === 2) limit = 1
   var defaultOptions = {
-    limit: 1 + os.cpus().length / 2,
+    limit: limit,
     filename: 'tags'
   }
   var opts = {
@@ -68,13 +70,9 @@ function globFiles (o, cb) {
   glob(pattern, Object.assign({ignore: exclude}, defaultGlobOpts), cb)
 }
 
-function formatTabLine (filename, ident) {
-  if (!ident) return
-  return [
-    ident.name,
-    filename,
-    ':normal ' + ident.loc.start.line + 'G' + (ident.loc.start.column + 1) + '|'
-  ].join('\t')
+var kinds = {
+  const: 'C',
+  constructor: 'c',
 }
 
 function tagFile (file, collect, cb) {
@@ -90,21 +88,25 @@ function tagFile (file, collect, cb) {
         loc: true,
         tolerant: true
       }, (node) => {
+        var kind
         switch (node.type) {
           case 'VariableDeclaration':
             return node.declarations.map((x) => {
-              return collect(file, x.id)
+//              console.warn(require('util').inspect(x, {depth: 101}))
+              return collect(file, x.id, kinds[x.kind] || 'v')
             })
           case 'FunctionDeclaration':
-            return collect(file, node.id)
+            kind = 'f'
+            if (node.id.generator) kind = 'g'
+            return collect(file, node.id, kind)
           case 'ClassDeclaration':
-            return collect(file, node.id)
+            return collect(file, node.id, 'c')
+          // case 'ExportDeclaration':
+          //   return collect(file, node.id, kind)
           case 'MethodDefinition':
-            return collect(file, node.key)
-          case 'ExportDeclaration':
-            return collect(file, node.id)
+            return collect(file, node.key, 'm')
           default:
-            // console.warn(inspect(node, {depth: 101}))
+//            console.warn(require('util').inspect(node, {depth: 101}))
         }
       })
     } catch (e) {
@@ -114,10 +116,22 @@ function tagFile (file, collect, cb) {
   })
 }
 
+function formatTabLine (filename, ident, kind) {
+  if (!ident) return
+  var line = [
+    ident.name,
+    filename,
+    ':normal ' + ident.loc.start.line + 'G' +
+                 (ident.loc.start.column + 1) + '|;"',
+  ]
+  if (kind) line.push(kind)
+  return line.join('\t')
+}
+
 function tagFiles (files, opts, cb) {
   var result = []
-  function collect (file, ident) {
-    result.push(formatTabLine(file, ident))
+  function collect (file, ident, kind) {
+    result.push(formatTabLine(file, ident, kind))
   }
   var filesFunctions = files.map(f => {
     return function (cb0) {
