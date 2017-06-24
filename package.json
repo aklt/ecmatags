@@ -1,6 +1,6 @@
 {
   "name": "ecmatags",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Generate a tags file",
   "main": "index.js",
   "bin": {
@@ -10,7 +10,7 @@
     "test": "node test.js"
   },
   "keywords": [
-    "tags"
+    "tags", "javascript", "ecmascript", "2016"
   ],
   "author": "Anders Thøgersen <anders@bladre.dk>",
   "license": "MIT",
@@ -20,7 +20,6 @@
     "run-parallel-limit": "^1.0.3"
   },
   "devDependencies": {
-    "mocha": "^3.4.2",
     "tape": "^4.6.3"
   }
 }
