@@ -7,9 +7,9 @@ if (!opts) process.exit(0)
 
 et.globFiles(opts, function (err, files) {
   if (err) return cb(err)
-  et.tagFiles(files, opts.limit, function (err, tags) {
+  et.tagFiles(files, opts, function (err, tags) {
     if (err) return (err)
-    et.writeFile(tags, cb)
+    et.writeFile(tags, opts, cb)
   })
 })
 

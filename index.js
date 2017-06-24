@@ -8,7 +8,8 @@ var parallelLimit = require('run-parallel-limit')
 
 function getOpts (args) {
   var defaultOptions = {
-    limit: 1 + os.cpus().length / 2
+    limit: 1 + os.cpus().length / 2,
+    filename: 'tags'
   }
   var opts = {
     include: []
@@ -23,7 +24,8 @@ function getOpts (args) {
     --help               show help
     --version            show version
     --limit <number>     max parallel, default 1 + CPUs / 2
-    --exclude <pattern>  ignore these patterns`)
+    --exclude <pattern>  ignore these patterns
+    --write <filename>   specify a file to write tags to`)
           return 0
         case 'version':
           console.log('Version: ' + require('./package.json').version)
@@ -36,6 +38,10 @@ function getOpts (args) {
           i += 1
           if (!opts.exclude) opts.exclude = []
           opts.exclude.push(args[i])
+          break
+        case 'write':
+          i += 1
+          opts.filename = args[i]
           break
         default:
           console.warn('Unknown arg: --' + m[1])
@@ -108,7 +114,7 @@ function tagFile (file, collect, cb) {
   })
 }
 
-function tagFiles (files, limit, cb) {
+function tagFiles (files, opts, cb) {
   var result = []
   function collect (file, ident) {
     result.push(formatTabLine(file, ident))
@@ -118,13 +124,13 @@ function tagFiles (files, limit, cb) {
       tagFile(f, collect, cb0)
     }
   })
-  parallelLimit(filesFunctions, limit, function (err) {
+  parallelLimit(filesFunctions, opts.limit, function (err) {
     if (err) return cb(err)
     cb(null, result)
   })
 }
 
-function writeFile (tags, cb) {
+function writeFile (tags, opts, cb) {
   var tagsHeader = `!_TAG_FILE_FORMAT       1
 !_TAG_FILE_SORTED       1       /0=unsorted, 1=sorted, 2=foldcase/
 !_TAG_OUTPUT_MODE       tags
@@ -133,7 +139,7 @@ function writeFile (tags, cb) {
 !_TAG_PROGRAM_VERSION   ${require('./package').version}
 `
   tags.sort()
-  fs.writeFile('tags', tagsHeader + tags.join('\n') + '\n', cb)
+  fs.writeFile(opts.filename, tagsHeader + tags.join('\n') + '\n', cb)
 }
 
 module.exports = {
